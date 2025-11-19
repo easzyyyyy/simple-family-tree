@@ -10,6 +10,7 @@ import { getFamilyTreeLines } from '@/utils/familyTreeLines';
 import PersonNode from '@/components/PersonNode';
 import AddPersonModal from '@/components/AddPersonModal';
 import {config} from "@/config.ts";
+import ContextMenu from "@/components/ContextMenu.tsx";
 
 export default function App() {
     const { persons: initialPersons, couples } = getFamilyData();
@@ -17,6 +18,7 @@ export default function App() {
     const [persons, setPersons] = useState<Person[]>(initialPersons);
     const [personPositions, setPersonPositions] = useState<Map<string, number>>(new Map());
     const [modalOpen, setModalOpen] = useState(false);
+    const [contextMenu, setContextMenu] = useState<{ person: Person; x: number; y: number } | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -66,12 +68,30 @@ export default function App() {
                             left: personPositions.get(p.id)
                         }}
                     >
-                        <PersonNode {...p} />
+                        <PersonNode
+                            {...p}
+                            onRightClick={(e) => {
+                                e.preventDefault();
+                                setContextMenu({ person: p, x: e.clientX, y: e.clientY });
+                            }}
+                        />
                     </div>
                 ))}
 
                 {lines}
             </div>
+
+            {contextMenu && (
+                <ContextMenu
+                    person={contextMenu.person}
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    onAddParent={(person: Person) => {
+                        console.log("Ajouter un parent pour", person);
+                    }}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
         </div>
     );
 }
