@@ -17,17 +17,18 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import '@/App.css'
+import { useRef } from 'react';
 
 import PersonNode, { type PersonNodeType, type PersonData } from './components/PersonNode';
 import AddPersonModal from './components/AddPersonModal';
 import initialData from '@/data/initialData.json';
+import {exportFlowToPDF} from "@/utils/exportFlowPDF.ts";
 
 /**
  * The main flow logic component.
  * Must be wrapped in ReactFlowProvider to use the useReactFlow hook.
  */
 function Flow() {
-    // State management
     const [nodes, setNodes] = useState<PersonNodeType[]>(
         initialData.nodes.map(node => ({
             ...node,
@@ -42,13 +43,10 @@ function Flow() {
     const [edges, setEdges] = useState<Edge[]>(initialData.edges as Edge[]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // useReactFlow hook allows us to convert screen coordinates to flow coordinates
     const { screenToFlowPosition } = useReactFlow();
-
-    // Register custom node types
     const nodeTypes = useMemo(() => ({ person: PersonNode }), []);
+    const flowWrapperRef = useRef<HTMLDivElement>(null); // Ref for PDF export
 
-    // Callbacks for React Flow events
     const onNodesChange: OnNodesChange<PersonNodeType> = useCallback(
         (changes: NodeChange<PersonNodeType>[]) =>
             setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -67,18 +65,13 @@ function Flow() {
         [],
     );
 
-    // Handler to create a new person node
     const handleAddPerson = (data: PersonData) => {
         const id = `person-${Date.now()}`;
-
-        // Calculate the position so the node appears in the center of the user's view.
-        // We project the center of the window (screen) to the Flow's coordinate system.
         const position = screenToFlowPosition({
             x: window.innerWidth / 2,
             y: window.innerHeight / 2,
         });
 
-        // Create the new node object
         const newNode: PersonNodeType = {
             id,
             type: 'person',
@@ -89,8 +82,13 @@ function Flow() {
         setNodes((nds) => nds.concat(newNode));
     };
 
+    // Export React Flow to PDF
+    const handleExportPDF = () => {
+        exportFlowToPDF(nodes, edges, 'mon-graph.pdf');
+    };
+
     return (
-        <>
+        <div ref={flowWrapperRef} className="w-full h-full">
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -100,11 +98,9 @@ function Flow() {
                 onConnect={onConnect}
                 fitView
             >
-                {/* Control Panel positioned at the top right */}
                 <Panel position="top-right">
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        // Tailwind classes for styling: shadow, emerald background/hover, white text, padding, rounded corners, and focus ring.
                         className="
                             shadow-md
                             bg-emerald-500 hover:bg-emerald-600
@@ -121,16 +117,35 @@ function Flow() {
                     >
                         + Ajouter une personne
                     </button>
+
+                    <button
+                        onClick={handleExportPDF}
+                        className="
+                            ml-2
+                            shadow-md
+                            bg-blue-500 hover:bg-blue-600
+                            text-white
+                            font-semibold
+                            py-2 px-4
+                            text-base
+                            rounded-lg
+                            border-none
+                            cursor-pointer
+                            transition duration-150 ease-in-out
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                        "
+                    >
+                        Export PDF
+                    </button>
                 </Panel>
             </ReactFlow>
 
-            {/* Modal for data entry */}
             <AddPersonModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleAddPerson}
             />
-        </>
+        </div>
     );
 }
 
