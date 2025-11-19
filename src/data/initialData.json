@@ -1,0 +1,39 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "position": { "x": 250, "y": 0 },
+      "data": {
+        "firstName": "Marcel",
+        "lastName": "Dupont",
+        "birthDate": "1920-05-12",
+        "deathDate": "1998-11-23",
+        "description": "L'arrière-grand-père, fondateur de l'entreprise familiale."
+      }
+    },
+    {
+      "id": "2",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "firstName": "Jean",
+        "lastName": "Dupont",
+        "birthDate": "1955-03-15",
+        "description": "Fils aîné, passionné de jardinage et d'échecs."
+      }
+    },
+    {
+      "id": "3",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "firstName": "Sophie",
+        "lastName": "Leclerc",
+        "birthDate": "1958-07-22",
+        "description": "Fille cadette, biologiste reconnue."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1-2", "source": "1", "target": "2", "animated": false },
+    { "id": "e1-3", "source": "1", "target": "3", "animated": false }
+  ]
+}

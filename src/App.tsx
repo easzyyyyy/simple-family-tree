@@ -1,100 +1,146 @@
-import { useCallback, useMemo } from 'react';
-import ReactFlow, {
+import { useState, useCallback, useMemo } from 'react';
+import {
+    ReactFlow,
+    ReactFlowProvider, // Required to access the internal ReactFlow state (viewport, zoom, etc.)
+    applyNodeChanges,
+    applyEdgeChanges,
     addEdge,
-    Background,
-    Controls,
-    MiniMap,
-    useNodesState,
-    useEdgesState,
-    MarkerType,
-    type Node,           // Type for Nodes
-    type Edge,           // Type for Edges
-    type Connection,     // Type for Connection params
-    type NodeTypes       // Type for nodeTypes object
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+    Panel, // UI component to overlay buttons on top of the canvas
+    useReactFlow, // Hook to interact with the flow instance
+    type Edge,
+    type OnNodesChange,
+    type OnEdgesChange,
+    type OnConnect,
+    type NodeChange,
+    type EdgeChange,
+    type Connection,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import '@/App.css'
 
-// Import component and the Type we defined
-import PersonNode, { type PersonData } from '@/components/PersonNode';
+import PersonNode, { type PersonNodeType, type PersonData } from './components/PersonNode';
+import AddPersonModal from './components/AddPersonModal';
+import initialData from '@/data/initialData.json';
 
-// Initial Data typed as Node<PersonData>
-const initialNodes: Node<PersonData>[] = [
-    { id: '1', type: 'person', position: { x: 250, y: 0 }, data: { label: 'Grandfather', gender: 'M', date: '1950' } },
-    { id: '2', type: 'person', position: { x: 250, y: 200 }, data: { label: 'Mom', gender: 'F', date: '1980' } },
-];
+/**
+ * The main flow logic component.
+ * Must be wrapped in ReactFlowProvider to use the useReactFlow hook.
+ */
+function Flow() {
+    // State management
+    const [nodes, setNodes] = useState<PersonNodeType[]>(
+        initialData.nodes.map(node => ({
+            ...node,
+            type: "person",
+            data: {
+                ...node.data,
+                birthDate: new Date(node.data.birthDate),
+                deathDate: node.data.deathDate ? new Date(node.data.deathDate) : undefined
+            }
+        }))
+    );
+    const [edges, setEdges] = useState<Edge[]>(initialData.edges as Edge[]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#2563eb' } }
-];
+    // useReactFlow hook allows us to convert screen coordinates to flow coordinates
+    const { screenToFlowPosition } = useReactFlow();
 
-export default function App() {
-    // Generic types <PersonData> added to useNodesState
-    const [nodes, setNodes, onNodesChange] = useNodesState<PersonData>(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    // Register custom node types
+    const nodeTypes = useMemo(() => ({ person: PersonNode }), []);
 
-    // FIX: useMemo prevents the "new nodeTypes object" warning
-    // It ensures the object reference stays the same across renders
-    const nodeTypes: NodeTypes = useMemo(() => ({
-        person: PersonNode,
-    }), []);
-
-    // Function to handle connections (Parent -> Child)
-    const onConnect = useCallback(
-        (params: Connection) => setEdges((eds) => addEdge({
-            ...params,
-            animated: true,
-            style: { stroke: '#2563eb', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' },
-        }, eds)),
-        [setEdges],
+    // Callbacks for React Flow events
+    const onNodesChange: OnNodesChange<PersonNodeType> = useCallback(
+        (changes: NodeChange<PersonNodeType>[]) =>
+            setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
+        [],
     );
 
-    // Function to add a new person node
-    const addPerson = () => {
-        const id = Math.random().toString();
-        const newNode: Node<PersonData> = {
+    const onEdgesChange: OnEdgesChange = useCallback(
+        (changes: EdgeChange[]) =>
+            setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
+        [],
+    );
+
+    const onConnect: OnConnect = useCallback(
+        (params: Connection) =>
+            setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+        [],
+    );
+
+    // Handler to create a new person node
+    const handleAddPerson = (data: PersonData) => {
+        const id = `person-${Date.now()}`;
+
+        // Calculate the position so the node appears in the center of the user's view.
+        // We project the center of the window (screen) to the Flow's coordinate system.
+        const position = screenToFlowPosition({
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+        });
+
+        // Create the new node object
+        const newNode: PersonNodeType = {
             id,
             type: 'person',
-            position: { x: Math.random() * 400, y: Math.random() * 400 },
-            data: {
-                label: 'New Member',
-                gender: Math.random() > 0.5 ? 'M' : 'F',
-                date: '????'
-            },
+            position,
+            data: data,
         };
+
         setNodes((nds) => nds.concat(newNode));
     };
 
     return (
-        <div className="h-screen w-full bg-gray-50 flex flex-col">
+        <>
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                fitView
+            >
+                {/* Control Panel positioned at the top right */}
+                <Panel position="top-right">
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        // Tailwind classes for styling: shadow, emerald background/hover, white text, padding, rounded corners, and focus ring.
+                        className="
+                            shadow-md
+                            bg-emerald-500 hover:bg-emerald-600
+                            text-white
+                            font-semibold
+                            py-2 px-4
+                            text-base
+                            rounded-lg
+                            border-none
+                            cursor-pointer
+                            transition duration-150 ease-in-out
+                            focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50
+                        "
+                    >
+                        + Ajouter une personne
+                    </button>
+                </Panel>
+            </ReactFlow>
 
-            {/* Toolbar */}
-            <div className="p-4 bg-white shadow-sm border-b flex justify-between items-center z-10">
-                <h1 className="text-xl font-bold text-gray-700">🌳 Family Tree Editor</h1>
-                <button
-                    onClick={addPerson}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
-                >
-                    + Add Person
-                </button>
-            </div>
+            {/* Modal for data entry */}
+            <AddPersonModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleAddPerson}
+            />
+        </>
+    );
+}
 
-            {/* Drawing Canvas */}
-            <div className="flex-grow">
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    nodeTypes={nodeTypes}
-                    fitView
-                >
-                    <Background color="#aaa" gap={16} />
-                    <Controls />
-                    <MiniMap nodeColor="#e2e8f0" maskColor="rgba(0,0,0, 0.1)" />
-                </ReactFlow>
-            </div>
+// The root App component wraps the Flow in the Provider
+export default function App() {
+    return (
+        <div className="w-screen h-screen bg-gray-100">
+            <ReactFlowProvider>
+                <Flow />
+            </ReactFlowProvider>
         </div>
     );
 }

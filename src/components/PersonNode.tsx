@@ -1,33 +1,74 @@
-import { memo } from 'react';
-import { Handle, Position, type NodeProps } from 'reactflow';
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 
-// Define the structure of the data passed to the node
-export type PersonData = {
-    label: string;
-    gender: 'M' | 'F';
-    date: string;
-};
+// Define the shape of the custom data for a person
+export interface PersonData extends Record<string, unknown> {
+    firstName: string;
+    lastName: string;
+    birthDate: Date;
+    deathDate?: Date;
+    description: string;
+}
 
-// Type the component using NodeProps with our custom data
-const PersonNode = memo(({ data }: NodeProps<PersonData>) => {
+// Define the specific Node type
+// We use 'person' as the type identifier here
+export type PersonNodeType = Node<PersonData, 'person'>;
+
+// The Custom Node Component
+export default function PersonNode({ data }: NodeProps<PersonNodeType>) {
     return (
-        <div className="bg-white border-2 border-gray-200 rounded-xl shadow-lg w-48 overflow-hidden">
-            {/* Header with color based on gender */}
-            <div className={`h-2 w-full ${data.gender === 'F' ? 'bg-pink-400' : 'bg-blue-400'}`} />
+        <div
+            className="
+                p-3
+                rounded-lg
+                border border-gray-300
+                bg-white
+                w-52
+                shadow-md
+                font-sans
+            "
+        >
+            {/* Target Handle: Connection from parents (Top) */}
+            <Handle type="target" position={Position.Top} />
 
-            <div className="p-4 flex flex-col items-center">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2 text-xl">
-                    {data.gender === 'F' ? '👩' : '👨'}
-                </div>
-
-                <div className="font-bold text-gray-800 text-center">{data.label}</div>
-                <div className="text-xs text-gray-500">{data.date}</div>
+            <div
+                className="
+                    border-b border-gray-200
+                    pb-1 mb-1
+                "
+            >
+                <strong
+                    className="
+                        text-base
+                        text-gray-800
+                    "
+                >
+                    {data.firstName} {data.lastName}
+                </strong>
             </div>
 
-            <Handle type="target" position={Position.Top} className="w-3 h-3 bg-gray-400" />
-            <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-blue-500" />
+            <div
+                className="
+                    text-xs
+                    text-gray-600
+                    mb-1
+                "
+            >
+                <span>{data.birthDate.toISOString()}</span>
+                {data.deathDate && <span> - {data.deathDate.toISOString()}</span>}
+            </div>
+
+            <div
+                className="
+                    text-[11px]
+                    text-gray-500
+                    italic
+                "
+            >
+                {data.description}
+            </div>
+
+            {/* Source Handle: Connection to children (Bottom) */}
+            <Handle type="source" position={Position.Bottom} />
         </div>
     );
-});
-
-export default PersonNode;
+}
