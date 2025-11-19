@@ -2,13 +2,13 @@ import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 
 // Define the shape of the custom data for a person
 export interface PersonData extends Record<string, unknown> {
-    firstName: string;
-    lastName: string;
-    birthDate: Date;
-    birthPlace: string;
+    firstName?: string;
+    lastName?: string;
+    birthDate?: Date;
+    birthPlace?: string;
     deathDate?: Date;
-    deathPlace: string;
-    description: string;
+    deathPlace?: string;
+    description?: string;
 }
 
 // Define the specific Node type
@@ -55,10 +55,13 @@ export default function PersonNode({ data }: NodeProps<PersonNodeType>) {
                     mb-1
                 "
             >
-                <span>
-                    Né le <strong>{data.birthDate.toLocaleDateString('fr-FR')}</strong>
-                    {data.birthPlace && <> à <strong>{data.birthPlace}</strong></>}
-                </span>
+                {data.birthDate && (
+                    <span>
+                        Né le <strong>{data.birthDate.toLocaleDateString('fr-FR')}</strong>
+                        {data.birthPlace && <> à <strong>{data.birthPlace}</strong></>}
+                    </span>
+                )}
+
                 {data.deathDate && (
                     <span>
                         <br />

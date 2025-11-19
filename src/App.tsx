@@ -35,8 +35,13 @@ function Flow() {
             type: "person",
             data: {
                 ...node.data,
-                birthDate: new Date(node.data.birthDate),
-                deathDate: node.data.deathDate ? new Date(node.data.deathDate) : undefined
+                birthDate: node.data.birthDate ? new Date(node.data.birthDate) : undefined,
+                deathDate: node.data.deathDate ? new Date(node.data.deathDate) : undefined,
+                birthPlace: node.data.birthPlace ?? undefined,
+                deathPlace: node.data.deathPlace ?? undefined,
+                firstName: node.data.firstName ?? undefined,
+                lastName: node.data.lastName ?? undefined,
+                description: node.data.description ?? undefined
             }
         }))
     );
