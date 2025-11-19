@@ -7,10 +7,10 @@ export interface CardLayout {
     height: number;
 }
 
-export function useCardLayouts(): {
-    registerRef: (id: string, el: HTMLDivElement | null) => void;
-    getCardLayout: (id: string) => CardLayout | undefined;
-} {
+export function useCardLayouts(
+    personPositions: Map<string, number>,
+    containerRef: React.RefObject<HTMLElement | null>,
+){
     const refs = useRef<Map<string, HTMLDivElement>>(new Map());
     const [layouts, setLayouts] = useState<Map<string, CardLayout>>(new Map());
 
@@ -19,18 +19,25 @@ export function useCardLayouts(): {
     };
 
     useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
         const newLayouts = new Map<string, CardLayout>();
+
         refs.current.forEach((el, id) => {
             const rect = el.getBoundingClientRect();
+
             newLayouts.set(id, {
-                x: rect.left + window.scrollX,
-                y: rect.top + window.scrollY,
+                x: rect.left - containerRect.left,
+                y: rect.top - containerRect.top,
                 width: rect.width,
                 height: rect.height
             });
         });
+
         setLayouts(newLayouts);
-    }, [refs.current]);
+    }, [personPositions]);
 
     const getCardLayout = (id: string) => layouts.get(id);
 

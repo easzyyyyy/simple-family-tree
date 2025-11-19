@@ -1,10 +1,10 @@
 import type { Person, Couple } from '@/types/types';
 import { config } from '@/config';
+import type {CardLayout} from "@/utils/useCardLayouts.ts";
 
-// Calculate Y position based on birth date
-export function getY(date: Date, minDate: Date, maxDate: Date, timelineHeight: number) {
-    const t = (date.getTime() - minDate.getTime()) / (maxDate.getTime() - minDate.getTime());
-    return t * timelineHeight;
+// Calculate Y position based on birth date with fixed 10px per year
+export function getY(date: Date, minYear: number) {
+    return (date.getFullYear() - minYear) * 10 + config.pageMargin; // 10px per year
 }
 
 // Compute horizontal positions with children centered under parents
@@ -65,4 +65,26 @@ export function computePersonPositions(
     }
 
     return positions;
+}
+
+// Get the tree container size
+export function getContainerSize(getCardLayout: (id: string) => CardLayout | undefined, personIds: string[], pageMargin: number) {
+    let maxX = 0;
+    let maxY = 0;
+
+    personIds.forEach(id => {
+        const layout = getCardLayout(id);
+        if (!layout) return;
+
+        const right = layout.x + layout.width;
+        const bottom = layout.y + layout.height;
+
+        if (right > maxX) maxX = right;
+        if (bottom > maxY) maxY = bottom;
+    });
+
+    return {
+        width: maxX + pageMargin,
+        height: maxY + pageMargin
+    };
 }

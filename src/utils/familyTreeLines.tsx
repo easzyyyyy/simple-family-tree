@@ -16,6 +16,7 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
     couples.forEach(couple => {
         const parents = couple.parents.map(pid => getCardLayout(pid)).filter(Boolean);
         const children = couple.children.map(cid => getCardLayout(cid)).filter(Boolean);
+
         if (!parents.length) return;
 
         // Parent verticals
@@ -94,6 +95,8 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
         // Vertical connector between parent and children lines
         const parentCenterX = (parents[0]!.x + parents[0]!.width / 2 + parents[parents.length - 1]!.x + parents[parents.length - 1]!.width / 2) / 2;
         const childCenterX = (children[0]!.x + children[0]!.width / 2 + children[children.length - 1]!.x + children[children.length - 1]!.width / 2) / 2;
+        const topY = Math.min(parentMaxY, childMinY);
+        const bottomY = Math.max(parentMaxY, childMinY);
         const connectorX = (parentCenterX + childCenterX) / 2;
 
         lines.push(
@@ -102,12 +105,13 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
                 className="absolute bg-gray-400"
                 style={{
                     left: connectorX,
-                    top: parentMaxY,
+                    top: topY,
                     width: 2,
-                    height: childMinY - parentMaxY
+                    height: bottomY - topY
                 }}
             />
         );
+
     });
 
     return lines;
