@@ -5,7 +5,9 @@ export interface PersonData extends Record<string, unknown> {
     firstName: string;
     lastName: string;
     birthDate: Date;
+    birthPlace: string;
     deathDate?: Date;
+    deathPlace: string;
     description: string;
 }
 
@@ -53,8 +55,17 @@ export default function PersonNode({ data }: NodeProps<PersonNodeType>) {
                     mb-1
                 "
             >
-                <span>{data.birthDate.toISOString()}</span>
-                {data.deathDate && <span> - {data.deathDate.toISOString()}</span>}
+                <span>
+                    Né le <strong>{data.birthDate.toLocaleDateString('fr-FR')}</strong>
+                    {data.birthPlace && <> à <strong>{data.birthPlace}</strong></>}
+                </span>
+                {data.deathDate && (
+                    <span>
+                        <br />
+                        Décédé le <strong>{data.deathDate.toLocaleDateString('fr-FR')}</strong>
+                        {data.deathPlace && <> à <strong>{data.deathPlace}</strong></>}
+                    </span>
+                )}
             </div>
 
             <div
