@@ -1,14 +1,37 @@
 import type { Person } from "@/types/types";
 
 export interface PersonNodeProps extends Person {
-    onRightClick?: (e: React.MouseEvent<HTMLDivElement>, person: Person) => void;
+    onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+    onRightClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+    isLinking?: boolean;
+    selected?: boolean;
 }
 
-export default function PersonNode({ onRightClick, ...person }: PersonNodeProps) {
+export default function PersonNode({
+   onRightClick,
+   onClick,
+   isLinking,
+   selected,
+   ...person
+}: PersonNodeProps) {
     return (
         <div
-            onContextMenu={(e) => onRightClick?.(e, person)}
-            className="p-3 rounded-lg border border-gray-300 bg-white w-52 shadow-md font-sans"
+            onClick={(e) => {
+                e.stopPropagation();
+                onClick?.(e);
+            }}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRightClick?.(e);
+            }}
+            className={`
+                p-3 rounded-lg bg-white w-52 shadow-md font-sans
+                border transition-colors duration-150
+                ${selected ? "border-yellow-400" :
+                isLinking ? "cursor-crosshair hover:border-green-500 border-gray-300" :
+                    "border-gray-300"}
+            `}
         >
             <div className="border-b border-gray-200 pb-1 mb-1">
                 <strong className="text-base text-gray-800">
@@ -24,11 +47,11 @@ export default function PersonNode({ onRightClick, ...person }: PersonNodeProps)
                     </span>
                 )}
                 {person.deathDate && (
-                    <span>
+                    <>
                         <br />
                         Décédé(e) le <strong>{person.deathDate.toLocaleDateString("fr-FR")}</strong>
                         {person.deathPlace && <> à <strong>{person.deathPlace}</strong></>}
-                    </span>
+                    </>
                 )}
             </div>
 

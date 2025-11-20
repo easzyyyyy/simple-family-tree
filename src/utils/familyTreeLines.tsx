@@ -1,6 +1,6 @@
 import type { Couple } from '@/types/types';
-import type {CardLayout} from "@/utils/useCardLayouts.ts";
-import type {JSX} from "react";
+import type { CardLayout } from "@/hooks/useCardLayouts.ts";
+import type { JSX } from "react";
 
 interface LineProps {
     couples: Couple[];
@@ -9,22 +9,26 @@ interface LineProps {
 
 /**
  * Generate JSX lines for parents, children, and vertical connectors.
+ * Ensures all widths/heights are positive and connectors adapt if inverted.
  */
 export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
     const lines: JSX.Element[] = [];
 
     couples.forEach(couple => {
+        // Get layouts for parents and children
         const parents = couple.parents.map(pid => getCardLayout(pid)).filter(Boolean);
         const children = couple.children.map(cid => getCardLayout(cid)).filter(Boolean);
-
         if (!parents.length) return;
+        if (!children.length) return;
 
-        // Parent verticals
+        // -------------------------------
+        // PARENT VERTICAL LINES
+        // -------------------------------
         const parentMaxY = Math.max(...parents.map(p => p!.y + p!.height)) + 20;
-        parents.forEach((p, i) =>
+        parents.forEach((p, i) => {
             lines.push(
                 <div
-                    key={`pv-${couple.parents[i]}`}
+                    key={`pv-${couple.id}-${couple.parents[i]}-${i}`}
                     className="absolute bg-gray-400"
                     style={{
                         left: p!.x + p!.width / 2,
@@ -33,37 +37,44 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
                         height: parentMaxY - (p!.y + p!.height)
                     }}
                 />
-            )
-        );
+            );
+        });
 
-        // Parent horizontal
+        // -------------------------------
+        // PARENT HORIZONTAL LINE
+        // -------------------------------
         if (parents.length >= 2) {
+            const leftX = Math.min(
+                parents[0]!.x + parents[0]!.width / 2,
+                parents[parents.length - 1]!.x + parents[parents.length - 1]!.width / 2
+            );
+            const rightX = Math.max(
+                parents[0]!.x + parents[0]!.width / 2,
+                parents[parents.length - 1]!.x + parents[parents.length - 1]!.width / 2
+            );
+
             lines.push(
                 <div
                     key={`ph-${couple.id}`}
                     className="absolute bg-gray-400"
                     style={{
-                        left: parents[0]!.x + parents[0]!.width / 2,
+                        left: leftX,
                         top: parentMaxY,
-                        width:
-                            parents[parents.length - 1]!.x +
-                            parents[parents.length - 1]!.width / 2 -
-                            (parents[0]!.x + parents[0]!.width / 2) +
-                            2,
+                        width: rightX - leftX,
                         height: 2
                     }}
                 />
             );
         }
 
-        if (!children.length) return;
-
-        // Child verticals
+        // -------------------------------
+        // CHILD VERTICAL LINES
+        // -------------------------------
         const childMinY = Math.min(...children.map(c => c!.y)) - 20;
-        children.forEach((c, i) =>
+        children.forEach((c, i) => {
             lines.push(
                 <div
-                    key={`cv-${couple.children[i]}`}
+                    key={`cv-${couple.id}-${couple.children[i]}-${i}`}
                     className="absolute bg-gray-400"
                     style={{
                         left: c!.x + c!.width / 2,
@@ -72,32 +83,43 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
                         height: c!.y - childMinY
                     }}
                 />
-            )
+            );
+        });
+
+        // -------------------------------
+        // CHILD HORIZONTAL LINE
+        // -------------------------------
+        const childLeftX = Math.min(
+            children[0]!.x + children[0]!.width / 2,
+            children[children.length - 1]!.x + children[children.length - 1]!.width / 2
+        );
+        const childRightX = Math.max(
+            children[0]!.x + children[0]!.width / 2,
+            children[children.length - 1]!.x + children[children.length - 1]!.width / 2
         );
 
-        // Child horizontal
         lines.push(
             <div
                 key={`ch-${couple.id}`}
                 className="absolute bg-gray-400"
                 style={{
-                    left: children[0]!.x + children[0]!.width / 2,
+                    left: childLeftX,
                     top: childMinY,
-                    width:
-                        children[children.length - 1]!.x +
-                        children[children.length - 1]!.width / 2 -
-                        (children[0]!.x + children[0]!.width / 2),
+                    width: childRightX - childLeftX,
                     height: 2
                 }}
             />
         );
 
-        // Vertical connector between parent and children lines
+        // -------------------------------
+        // VERTICAL CONNECTOR BETWEEN PARENTS AND CHILDREN
+        // -------------------------------
         const parentCenterX = (parents[0]!.x + parents[0]!.width / 2 + parents[parents.length - 1]!.x + parents[parents.length - 1]!.width / 2) / 2;
         const childCenterX = (children[0]!.x + children[0]!.width / 2 + children[children.length - 1]!.x + children[children.length - 1]!.width / 2) / 2;
+        const connectorX = (parentCenterX + childCenterX) / 2;
+
         const topY = Math.min(parentMaxY, childMinY);
         const bottomY = Math.max(parentMaxY, childMinY);
-        const connectorX = (parentCenterX + childCenterX) / 2;
 
         lines.push(
             <div
@@ -111,7 +133,6 @@ export function getFamilyTreeLines({ couples, getCardLayout }: LineProps) {
                 }}
             />
         );
-
     });
 
     return lines;
