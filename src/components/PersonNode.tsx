@@ -2,6 +2,8 @@ import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 
 // Define the shape of the custom data for a person
 export interface PersonData extends Record<string, unknown> {
+    id: string;
+    type: 'person';
     firstName?: string;
     lastName?: string;
     birthDate?: Date;

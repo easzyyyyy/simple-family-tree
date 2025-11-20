@@ -2,42 +2,92 @@
   "nodes": [
     {
       "id": "1",
-      "position": { "x": 250, "y": 0 },
-      "data": {
-        "firstName": "Marcel",
-        "lastName": "Dupont",
-        "birthDate": "1920-05-12",
-        "birthPlace": "Lyon",
-        "deathDate": "1998-11-23",
-        "deathPlace": "Paris",
-        "description": "L'arrière-grand-père, fondateur de l'entreprise familiale."
-      }
+      "firstName": "Marcel",
+      "lastName": "Dupont",
+      "birthDate": "1920-05-12",
+      "birthPlace": "Lyon",
+      "deathDate": "1998-11-23",
+      "deathPlace": "Paris",
+      "description": "L'arrière-grand-père, fondateur de l'entreprise familiale."
     },
     {
       "id": "2",
-      "position": { "x": 100, "y": 200 },
-      "data": {
-        "firstName": "Jean",
-        "lastName": "Dupont",
-        "birthDate": "1955-03-15",
-        "birthPlace": "Paris",
-        "description": "Fils aîné, passionné de jardinage et d'échecs."
-      }
+      "firstName": "Jean",
+      "lastName": "Dupont",
+      "birthDate": "1955-03-15",
+      "birthPlace": "Paris",
+      "deathDate": "2015-01-30",
+      "deathPlace": "Paris",
+      "description": "Fils aîné, passionné de jardinage et d'échecs."
     },
     {
       "id": "3",
-      "position": { "x": 400, "y": 200 },
-      "data": {
-        "firstName": "Sophie",
-        "lastName": "Leclerc",
-        "birthDate": "1958-07-22",
-        "birthPlace": "Marseille",
-        "description": "Fille cadette, biologiste reconnue."
-      }
+      "firstName": "Sophie",
+      "lastName": "Leclerc",
+      "birthDate": "1958-07-22",
+      "birthPlace": "Marseille",
+      "deathDate": "2020-09-10",
+      "deathPlace": "Marseille",
+      "description": "Fille cadette, biologiste reconnue."
+    },
+    {
+      "id": "4",
+      "firstName": "Claire",
+      "lastName": "Dupont",
+      "birthDate": "1980-06-10",
+      "birthPlace": "Paris",
+      "deathDate": null,
+      "deathPlace": null,
+      "description": "Petite-fille aînée, ingénieure."
+    },
+    {
+      "id": "5",
+      "firstName": "Paul",
+      "lastName": "Dupont",
+      "birthDate": "1983-09-02",
+      "birthPlace": "Paris",
+      "deathDate": null,
+      "deathPlace": null,
+      "description": "Petit-fils cadet, musicien."
+    },
+    {
+      "id": "6",
+      "firstName": "Emma",
+      "lastName": "Leclerc",
+      "birthDate": "1985-11-15",
+      "birthPlace": "Marseille",
+      "deathDate": null,
+      "deathPlace": null,
+      "description": "Petite-fille, scientifique."
+    },
+    {
+      "id": "7",
+      "firstName": "Lucas",
+      "lastName": "Dupont",
+      "birthDate": "2010-04-20",
+      "birthPlace": "Paris",
+      "deathDate": null,
+      "deathPlace": null,
+      "description": "Arrière-petit-fils, étudiant."
+    },
+    {
+      "id": "8",
+      "firstName": "Chloé",
+      "lastName": "Dupont",
+      "birthDate": "2012-08-05",
+      "birthPlace": "Paris",
+      "deathDate": null,
+      "deathPlace": null,
+      "description": "Arrière-petite-fille, passionnée de dessin."
     }
   ],
   "edges": [
-    { "id": "e1-2", "source": "1", "target": "2", "animated": false },
-    { "id": "e1-3", "source": "1", "target": "3", "animated": false }
+    { "id": "e1-2", "source": "1", "target": "2" },
+    { "id": "e1-3", "source": "1", "target": "3" },
+    { "id": "e2-4", "source": "2", "target": "4" },
+    { "id": "e2-5", "source": "2", "target": "5" },
+    { "id": "e3-6", "source": "3", "target": "6" },
+    { "id": "e4-7", "source": "4", "target": "7" },
+    { "id": "e5-8", "source": "5", "target": "8" }
   ]
 }
