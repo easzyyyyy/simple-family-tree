@@ -1,4 +1,4 @@
-import {useState, useMemo} from 'react';
+import { useState, useMemo } from 'react';
 import {
     ReactFlow,
     ReactFlowProvider,
@@ -6,36 +6,38 @@ import {
     Background,
     useNodesState,
     useEdgesState,
-    ConnectionLineType, BackgroundVariant, Controls,
+    ConnectionLineType,
+    BackgroundVariant,
+    Controls,
 } from '@xyflow/react';
+
 import '@xyflow/react/dist/style.css';
 import '@/App.css';
 
 import AddPersonModal from '@/components/AddPersonModal';
 import PersonNode from "@/components/PersonNode.tsx";
-
-import {
-    type FamilyEdgeType,
-    type FamilyNodeType
-} from '@/types/familyTypes.ts';
-
-import { loadEdges, loadNodes } from "@/utils/loadFamilyData.ts";
 import PseudoNode from "@/components/PseudoNode.tsx";
-import {useAutoLayout} from "@/hooks/useAutoLayout.ts";
 
-const initialNodes = loadNodes();
-const initialEdges = loadEdges();
+import { useAutoLayout } from "@/hooks/useAutoLayout.ts";
+import { createHandleAddPerson, createHandleConnect } from "@/utils/graphHandlers.ts";
+
+import jsonData from '@/data/initialData.json';
+import { loadData } from "@/utils/familyCrud.ts";
+
+const initialData = loadData(jsonData);
 
 function Flow() {
-    const [nodes, , onNodesChange] = useNodesState<FamilyNodeType>(initialNodes);
-    const [edges, , onEdgesChange] = useEdgesState<FamilyEdgeType>(initialEdges);
-
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialData.nodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialData.edges);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const nodeTypes = useMemo(() => ({
         person: PersonNode,
-        pseudo: PseudoNode
+        pseudo: PseudoNode,
     }), []);
+
+    const handleAddPerson = createHandleAddPerson(setNodes, setEdges);
+    const handleConnect = createHandleConnect(setNodes, setEdges);
 
     useAutoLayout();
 
@@ -44,7 +46,7 @@ function Flow() {
             <Panel position="top-right" className="flex flex-col gap-2">
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="shadow-md bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 text-base rounded-lg border-none cursor-pointer transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50"
+                    className="shadow-md bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 text-base rounded-lg"
                 >
                     + Add Person
                 </button>
@@ -56,6 +58,7 @@ function Flow() {
                 nodeTypes={nodeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onConnect={handleConnect}
                 connectionLineType={ConnectionLineType.Step}
                 defaultEdgeOptions={{ type: 'step' }}
                 nodesDraggable={false}
@@ -68,7 +71,7 @@ function Flow() {
             <AddPersonModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={() => console.log('Add Person')}
+                onSubmit={handleAddPerson}
             />
         </div>
     );

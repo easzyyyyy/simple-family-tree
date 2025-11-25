@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect } from 'react';
+import {useCallback, useLayoutEffect, useRef} from 'react';
 import { useReactFlow } from '@xyflow/react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
@@ -12,35 +12,34 @@ const elkOptions = {
     'elk.layered.spacing.edgeNodeBetweenLayers': '30',
 };
 
-interface UseAutoLayoutOptions {
-    padding?: number;
-}
-
 /**
  * Hook: Automatically lays out nodes using ELK after first render
  */
-export function useAutoLayout({ padding = 0.2 }: UseAutoLayoutOptions = {}) {
+export function useAutoLayout({ padding = 0.2 } = {}) {
     const { getNodes, getEdges, setNodes, setEdges, fitView } = useReactFlow();
+
+    const lastSignature = useRef("");
 
     const updateLayout = useCallback(async () => {
         const nodes = getNodes();
         const edges = getEdges();
 
-        // Only layout nodes that have measured dimensions
-        if (nodes.length === 0 || !nodes.every(n => n.data?.width && n.data?.height)) return;
+        if (nodes.length === 0 || !nodes.every(n => n.data?.width && n.data?.height)) {
+            return;
+        }
 
         const elkGraph = {
             id: 'root',
             layoutOptions: elkOptions,
-            children: nodes.map(node => ({
-                id: node.id,
-                width: Number(node.data?.width),
-                height: Number(node.data?.height),
+            children: nodes.map(n => ({
+                id: n.id,
+                width: Number(n.data?.width),
+                height: Number(n.data?.height),
             })),
-            edges: edges.map(edge => ({
-                id: edge.id,
-                sources: [edge.source],
-                targets: [edge.target],
+            edges: edges.map(e => ({
+                id: e.id,
+                sources: [e.source],
+                targets: [e.target],
             })),
         };
 
@@ -59,8 +58,17 @@ export function useAutoLayout({ padding = 0.2 }: UseAutoLayoutOptions = {}) {
     }, [getNodes, getEdges, setNodes, setEdges, fitView, padding]);
 
     useLayoutEffect(() => {
-        // Small delay to ensure nodes have been rendered and measured
-        const timer = setTimeout(() => updateLayout(), 50);
-        return () => clearTimeout(timer);
-    }, [updateLayout]);
+        const nodes = getNodes();
+        const edges = getEdges();
+
+        const signature =
+            nodes.map(n => n.id).join(",") +
+            "|" +
+            edges.map(e => e.id).join(",");
+
+        if (signature !== lastSignature.current) {
+            lastSignature.current = signature;
+            setTimeout(updateLayout, 100);
+        }
+    });
 }
